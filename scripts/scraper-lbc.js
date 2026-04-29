@@ -40,6 +40,12 @@ async function scraper() {
   const page = await context.newPage();
 
   try {
+    // Supprimer les anciennes annonces avant de réinsérer
+    console.log("🗑️  Suppression des anciennes annonces AutoScout24...");
+    const { error: deleteError } = await supabase.from("annonces").delete().eq("source", "AutoScout24");
+    if (deleteError) console.log("⚠️  Erreur suppression:", deleteError.message);
+    else console.log("✅ Anciennes annonces supprimées");
+
     // Première page + accepter cookies
     console.log("📡 Ouverture de la page 1...");
     await page.goto("https://www.autoscout24.fr/lst?atype=C&cy=F&size=20&page=1", {
