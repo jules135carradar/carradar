@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(export PATH=\"/home/jules/.config/nvm/versions/node/v24.15.0/bin:$PATH\")",
+      "Bash(node -e ' *)"
+    ]
+  }
+}

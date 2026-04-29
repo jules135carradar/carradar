@@ -7,29 +7,12 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-const NOMBRE_DE_PAGES = 50; // 50 pages x 20 annonces = 1000 annonces
-
-async function scraperPage(page, numero) {
-  const url = `https://www.autoscout24.fr/lst?atype=C&cy=F&size=20&page=${numero}`;
-  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
-
-  const nextData = await page.evaluate(() => {
-    const el = document.getElementById("__NEXT_DATA__");
-    if (!el) return null;
-    try { return JSON.parse(el.textContent); } catch { return null; }
-  });
-
-  if (!nextData) return [];
-
-  return (
-    nextData?.props?.pageProps?.listings ||
-    nextData?.props?.pageProps?.ads ||
-    []
-  );
-}
+const NOMBRE_DE_PAGES = 50;
 
 async function scraper() {
   console.log(`🚗 Lancement du scraper AutoScout24 (${NOMBRE_DE_PAGES} pages)...`);
+
+  const runStartedAt = new Date().toISOString();
 
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -40,13 +23,7 @@ async function scraper() {
   const page = await context.newPage();
 
   try {
-    // Supprimer les anciennes annonces avant de réinsérer
-    console.log("🗑️  Suppression des anciennes annonces AutoScout24...");
-    const { error: deleteError } = await supabase.from("annonces").delete().eq("source", "AutoScout24");
-    if (deleteError) console.log("⚠️  Erreur suppression:", deleteError.message);
-    else console.log("✅ Anciennes annonces supprimées");
-
-    // Première page + accepter cookies
+    // Accepter les cookies sur la première page
     console.log("📡 Ouverture de la page 1...");
     await page.goto("https://www.autoscout24.fr/lst?atype=C&cy=F&size=20&page=1", {
       waitUntil: "domcontentloaded",
@@ -62,7 +39,7 @@ async function scraper() {
       console.log("ℹ️  Pas de popup cookie");
     }
 
-    let totalSaved = 0;
+    let totalUpserted = 0;
 
     for (let p = 1; p <= NOMBRE_DE_PAGES; p++) {
       try {
@@ -87,8 +64,11 @@ async function scraper() {
           break;
         }
 
-        let saved = 0;
+        let upserted = 0;
         for (const item of listings) {
+          if (!item.id) continue;
+
+          const source_id = "as24_" + item.id;
           const titre = [item.vehicle?.make, item.vehicle?.model].filter(Boolean).join(" ") || "Inconnu";
           const prix = item.tracking?.price ? parseInt(item.tracking.price) : null;
           const km = item.tracking?.mileage ? parseInt(item.tracking.mileage) : null;
@@ -97,34 +77,40 @@ async function scraper() {
           const lieu = item.location?.city || null;
           const lien = item.url ? "https://www.autoscout24.fr" + item.url : null;
           const image = item.images?.[0] || null;
-
+          const images = item.images || [];
           const carburant = item.vehicle?.fuel || null;
           const boite = item.vehicle?.transmission || null;
-          const images = item.images || [];
           const description = item.vehicle?.modelVersionInput || null;
           const puissanceDetail = (item.vehicleDetails || []).find(d => d.ariaLabel === "Puissance kW (CH)");
           const puissance = puissanceDetail?.data || null;
 
-          const { error } = await supabase.from("annonces").insert({
-            titre, prix, km, annee, lieu,
-            source: "AutoScout24",
-            image, lien,
-            images, carburant, boite, description, puissance,
-          });
+          const { error } = await supabase.from("annonces").upsert(
+            { source_id, titre, prix, km, annee, lieu, source: "AutoScout24", image, lien, images, carburant, boite, description, puissance, last_scraped_at: runStartedAt },
+            { onConflict: "source_id" }
+          );
 
-          if (!error) saved++;
+          if (!error) upserted++;
         }
 
-        totalSaved += saved;
-        console.log(`  ✅ Page ${p}/${NOMBRE_DE_PAGES} — ${saved} annonces sauvegardées (total: ${totalSaved})`);
+        totalUpserted += upserted;
+        console.log(`  ✅ Page ${p}/${NOMBRE_DE_PAGES} — ${upserted} annonces mises à jour (total: ${totalUpserted})`);
 
       } catch (err) {
         console.log(`  ⚠️  Page ${p} ignorée: ${err.message}`);
       }
     }
 
-    console.log(`\n🎉 Terminé ! ${totalSaved} annonces au total dans la base de données.`);
-    console.log("Rafraîchis ton site pour les voir !");
+    // Supprimer les annonces qui n'existent plus sur AutoScout24
+    console.log("🗑️  Suppression des annonces disparues d'AutoScout24...");
+    const { error: deleteError, count } = await supabase
+      .from("annonces")
+      .delete({ count: "exact" })
+      .eq("source", "AutoScout24")
+      .lt("last_scraped_at", runStartedAt);
+    if (deleteError) console.log("⚠️  Erreur suppression:", deleteError.message);
+    else console.log(`✅ ${count ?? "?"} annonces supprimées (vendues ou retirées)`);
+
+    console.log(`\n🎉 Terminé ! ${totalUpserted} annonces AutoScout24 dans la base.`);
 
   } catch (error) {
     console.error("❌ Erreur:", error.message);
