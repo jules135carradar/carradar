@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import Header from "@/components/Header";
 
 const sourceCouleur: Record<string, string> = {
   LeBonCoin:    "bg-orange-500/15 text-orange-300 ring-1 ring-orange-500/30",
@@ -53,20 +54,7 @@ export default async function Home({
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
 
-      {/* Header */}
-      <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 group">
-            <RadarLogo size={26} />
-            <span className="text-lg font-bold tracking-tight text-white">
-              Car<span className="text-blue-400">Radar</span>
-            </span>
-          </a>
-          <button className="text-sm font-medium px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors">
-            Connexion
-          </button>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero — affiché seulement sans filtres actifs */}
       {!hasFilters && (

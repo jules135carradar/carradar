@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ImageGallery from "./ImageGallery";
+import Header from "@/components/Header";
 
 const sourceCouleur: Record<string, string> = {
   LeBonCoin:    "bg-orange-500/15 text-orange-300 ring-1 ring-orange-500/30",
@@ -68,21 +69,12 @@ export default async function AnnonceDetail({ params }: { params: Promise<{ id: 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
 
-      {/* Header */}
-      <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-4">
-          <Link href="/" className="text-zinc-500 hover:text-zinc-300 text-sm transition-colors">
-            ← Retour
-          </Link>
-          <span className="text-zinc-700">|</span>
-          <Link href="/" className="flex items-center gap-2">
-            <RadarLogo size={22} />
-            <span className="text-base font-bold tracking-tight text-white">
-              Car<span className="text-blue-400">Radar</span>
-            </span>
-          </Link>
-        </div>
-      </header>
+      <Header />
+      <div className="max-w-5xl mx-auto px-4 pt-4">
+        <Link href="/" className="text-zinc-500 hover:text-zinc-300 text-sm transition-colors">
+          ← Retour aux annonces
+        </Link>
+      </div>
 
       <main className="max-w-5xl mx-auto px-4 py-8">
 
