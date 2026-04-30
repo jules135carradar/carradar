@@ -5,6 +5,9 @@ const sourceCouleur: Record<string, string> = {
   AutoScout24: "bg-blue-100 text-blue-700",
   "La Centrale": "bg-green-100 text-green-700",
   Autosphere: "bg-purple-100 text-purple-700",
+  Aramisauto: "bg-red-100 text-red-700",
+  ParuVendu: "bg-yellow-100 text-yellow-700",
+  AutoUncle: "bg-gray-100 text-gray-700",
 };
 
 export default async function Home({
@@ -147,6 +150,10 @@ export default async function Home({
                 <option value="">🌐 Toutes les sources</option>
                 <option value="AutoScout24">AutoScout24</option>
                 <option value="Autosphere">Autosphere</option>
+                <option value="LeBonCoin">LeBonCoin</option>
+                <option value="La Centrale">La Centrale</option>
+                <option value="Aramisauto">Aramisauto</option>
+                <option value="ParuVendu">ParuVendu</option>
               </select>
 
               {hasFilters && (
