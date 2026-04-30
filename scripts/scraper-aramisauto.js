@@ -73,17 +73,12 @@ async function extraireAnnonces(page) {
       // Tout le texte de la carte pour chercher le km réel (y compris voitures électriques)
       const allText = a.textContent || "";
 
-      // Prix: chercher le premier "XX XXX €" dans les paragraphes
-      const pTexts = Array.from(a.querySelectorAll("p")).map((p) =>
-        p.textContent.trim()
-      );
+      // Prix: cherche dans tout le texte de la carte
+      // On prend le premier montant entre 1000 et 200000€ (exclut les mensualités ~100-500€)
       let prix = null;
-      for (const t of pTexts) {
-        const m = t.match(/^(\d[\d\s]{1,8})€/);
-        if (m) {
-          prix = parseInt(m[1].replace(/\s/g, ""));
-          break;
-        }
+      for (const m of allText.matchAll(/(\d[\d\s]{1,8})\s*€/g)) {
+        const val = parseInt(m[1].replace(/\s/g, ""));
+        if (val >= 1000 && val <= 200000) { prix = val; break; }
       }
 
       // km réel: cherche dans tout le texte de la carte, exclut "km WLTP"
