@@ -2,17 +2,26 @@
 import { useState } from "react";
 
 function grandUrl(url: string) {
-  return url.replace("/250x188.webp", "/800x600.webp");
+  // AutoScout24 : remplace le thumbnail par la version haute résolution
+  if (url.includes("/250x188.webp")) return url.replace("/250x188.webp", "/800x600.webp");
+  if (url.includes("/350x263.webp")) return url.replace("/350x263.webp", "/800x600.webp");
+  return url;
 }
 
 export default function ImageGallery({ photos, titre }: { photos: string[]; titre: string }) {
   const [current, setCurrent] = useState(0);
   const [lightbox, setLightbox] = useState(false);
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
 
   if (photos.length === 0) return null;
 
   const prev = () => setCurrent((i) => (i - 1 + photos.length) % photos.length);
   const next = () => setCurrent((i) => (i + 1) % photos.length);
+
+  function openLightbox() {
+    setImgSrc(grandUrl(photos[current]));
+    setLightbox(true);
+  }
 
   return (
     <>
@@ -22,7 +31,7 @@ export default function ImageGallery({ photos, titre }: { photos: string[]; titr
           src={photos[current]}
           alt={`${titre} photo ${current + 1}`}
           className="w-full h-72 object-cover rounded-xl cursor-zoom-in"
-          onClick={() => setLightbox(true)}
+          onClick={openLightbox}
         />
 
         {/* Flèche gauche */}
@@ -63,10 +72,14 @@ export default function ImageGallery({ photos, titre }: { photos: string[]; titr
           onClick={() => setLightbox(false)}
         >
           <img
-            src={grandUrl(photos[current])}
+            src={imgSrc ?? photos[current]}
             alt={`${titre} photo ${current + 1}`}
             className="max-h-[90vh] max-w-[90vw] w-auto h-auto object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
+            onError={() => {
+              // Si la version haute-res échoue, on retombe sur l'URL originale
+              if (imgSrc !== photos[current]) setImgSrc(photos[current]);
+            }}
           />
 
           {/* Fermer */}
