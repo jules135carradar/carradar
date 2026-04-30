@@ -57,7 +57,28 @@ export default async function Home({
 
   if (error) console.error("Erreur Supabase:", error.message);
 
-  const liste = annonces ?? [];
+  // Mélanger les annonces en alternant les sources
+  function interleave(items: any[]): any[] {
+    const bySource: Record<string, any[]> = {};
+    for (const item of items) {
+      if (!bySource[item.source]) bySource[item.source] = [];
+      bySource[item.source].push(item);
+    }
+    const sources = Object.keys(bySource);
+    const result: any[] = [];
+    let i = 0;
+    while (result.length < items.length) {
+      let added = false;
+      for (const src of sources) {
+        if (bySource[src][i]) { result.push(bySource[src][i]); added = true; }
+      }
+      if (!added) break;
+      i++;
+    }
+    return result;
+  }
+
+  const liste = interleave(annonces ?? []);
   const hasFilters = Object.values(filters).some((v) => v && v.length > 0);
 
   return (
