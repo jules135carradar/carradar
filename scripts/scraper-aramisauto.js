@@ -10,42 +10,51 @@ const supabase = createClient(
 const NOMBRE_DE_PAGES = 100;
 
 function parseH3(h3) {
-  // Format: "Peugeot 2008 1.2 PureTech 100 BVM6 • Active Essence • Manuelle _2024_ • 29 733 km • Occasion"
+  // Exemples réels:
+  // "Peugeot 208 50 kWh 136ch • GT + GPS Électrique • Auto. • 340km WLTP _2021_"
+  // "Peugeot 2008 100 S&S BVM6 • Allure Essence • Manuelle _2025_ • 16 303 km"
+  // "Peugeot 3008 Hybrid 225 e-EAT8 • Allure Hybride essence rechargeable • Auto. _2020_"
   const parts = h3.split("•").map((s) => s.trim());
   const titre = parts[0]?.trim() || null;
 
-  // Carburant: cherche dans tout le h3
+  // Carburant
   let carburant = null;
   if (/électrique|electric/i.test(h3)) carburant = "Électrique";
-  else if (/hybride/i.test(h3)) carburant = "Hybride";
+  else if (/hybride|micro-hybride/i.test(h3)) carburant = "Hybride";
   else if (/diesel/i.test(h3)) carburant = "Diesel";
   else if (/essence/i.test(h3)) carburant = "Essence";
   else if (/gpl/i.test(h3)) carburant = "GPL";
 
-  // Boite: cherche dans tout le h3
+  // Boite: "Auto." = Automatique sur Aramisauto
   let boite = null;
-  if (/automatique/i.test(h3)) boite = "Automatique";
+  if (/automatique|auto\./i.test(h3)) boite = "Automatique";
   else if (/manuelle/i.test(h3)) boite = "Manuelle";
 
-  // Année: premier nombre à 4 chiffres entre 2000 et 2030
+  // Année: 4 chiffres 2000-2030
   const anneeMatch = h3.match(/\b(20[0-2]\d)\b/);
   const annee = anneeMatch ? parseInt(anneeMatch[1]) : null;
 
-  // KM: nombre suivi de "km" (espaces inclus entre chiffres)
-  const kmMatch = h3.match(/(\d[\d\s]{0,6})\s*km/i);
+  // KM: exclure "XXkm WLTP" qui est l'autonomie électrique, pas le kilométrage réel
+  const kmMatch = h3.match(/(\d[\d\s]{0,6})\s*km(?!\s*WLTP)/i);
   const km = kmMatch ? parseInt(kmMatch[1].replace(/\s/g, "")) : null;
 
-  // Puissance: nombre (50–700) suivi d'un code boite (BVM/EAT/DCT/EDC/CVT) dans le titre
+  // Puissance: 1) "136ch" ou "100ch" directement collé
   let puissance = null;
-  const pvGear = titre?.match(/\b(\d{2,3})\s+(?:BVM|EAT|DCT|EDC|DSG|CVT|AMT|e-CVT)\d*/i);
-  if (pvGear) {
-    puissance = pvGear[1] + " ch";
+  const pvCh = h3.match(/\b(\d{2,3})ch\b/i);
+  if (pvCh) {
+    puissance = pvCh[1] + " ch";
   } else {
-    // Sinon : dernier nombre entre 50 et 700 dans le titre, pas suivi de "kWh" ou "kW"
-    const nums = [...(titre || "").matchAll(/\b(\d{2,3})\b(?!\s*k[Ww])/g)];
-    for (const m of [...nums].reverse()) {
-      const n = parseInt(m[1]);
-      if (n >= 50 && n <= 700) { puissance = n + " ch"; break; }
+    // 2) Nombre avant code boite: "225 e-EAT8", "100 BVM6", "145 e-DCS6"
+    const pvGear = titre?.match(/\b(\d{2,3})\s+(?:e-)?(?:BVM|EAT|DCT|EDC|DSG|CVT|AMT|DCS)\d*/i);
+    if (pvGear) {
+      puissance = pvGear[1] + " ch";
+    } else {
+      // 3) Dernier nombre 50-700 dans le titre, pas suivi de "." (décimales) ni "kW"
+      const nums = [...(titre || "").matchAll(/\b(\d{2,3})\b(?!\.)(?!\s*k[Ww])/g)];
+      for (const m of [...nums].reverse()) {
+        const n = parseInt(m[1]);
+        if (n >= 50 && n <= 700) { puissance = n + " ch"; break; }
+      }
     }
   }
 
@@ -61,6 +70,9 @@ async function extraireAnnonces(page) {
     return liens.map((a) => {
       const h3 = a.querySelector("h3")?.textContent.trim() || "";
 
+      // Tout le texte de la carte pour chercher le km réel (y compris voitures électriques)
+      const allText = a.textContent || "";
+
       // Prix: chercher le premier "XX XXX €" dans les paragraphes
       const pTexts = Array.from(a.querySelectorAll("p")).map((p) =>
         p.textContent.trim()
@@ -74,14 +86,22 @@ async function extraireAnnonces(page) {
         }
       }
 
+      // km réel: cherche dans tout le texte de la carte, exclut "km WLTP"
+      // Les voitures électriques ont le vrai km ailleurs que dans le h3
+      let kmCard = null;
+      const allKmMatches = [...allText.matchAll(/(\d[\d\s]{0,6})\s*km(?!\s*WLTP)/gi)];
+      for (const m of allKmMatches) {
+        const val = parseInt(m[1].replace(/\s/g, ""));
+        if (val >= 100 && val <= 500000) { kmCard = val; break; }
+      }
+
       const img = a.querySelector("img")?.src || null;
       const lien = a.href || null;
 
-      // vehicleId depuis URL: /voitures/.../rv123456/ ou ?vehicleId=123456
       const idMatch = lien?.match(/\/rv(\d+)/) || lien?.match(/vehicleId=(\d+)/);
       const vehicleId = idMatch ? idMatch[1] : null;
 
-      return { h3, prix, img, lien, vehicleId };
+      return { h3, allText, prix, kmCard, img, lien, vehicleId };
     });
   });
 }
@@ -123,12 +143,15 @@ async function scraper() {
           const parsed = parseH3(card.h3);
           if (!parsed.titre) continue;
 
+          // km depuis la carte en entier (fiable), sinon depuis le h3
+          const km = card.kmCard ?? parsed.km;
+
           const { error } = await supabase.from("annonces").upsert(
             {
               source_id,
               titre: parsed.titre,
               prix: card.prix,
-              km: parsed.km,
+              km,
               annee: parsed.annee,
               lieu: null,
               source: "Aramisauto",
