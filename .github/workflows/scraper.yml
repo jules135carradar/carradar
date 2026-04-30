@@ -37,11 +37,11 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: node scripts/scraper-autosphere.js
 
-      - name: Lancer le scraper Aramisauto
+      - name: Lancer le scraper ParuVendu
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        run: node scripts/scraper-aramisauto.js
+        run: node scripts/scraper-paruvendu.js
 
       - name: Lancer le scraper AutoUncle (LeBonCoin, La Centrale...)
         env:
