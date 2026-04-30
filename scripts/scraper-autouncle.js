@@ -155,19 +155,23 @@ async function scraper() {
       }
     }
 
-    // Supprimer les annonces AutoUncle disparues
-    console.log("🗑️  Suppression des annonces AutoUncle disparues...");
-    const sources = Object.values(SOURCE_MAP).concat(["AutoUncle"]);
-    for (const src of sources) {
-      const { error } = await supabase
-        .from("annonces")
-        .delete()
-        .eq("source", src)
-        .like("source_id", "au_%")
-        .lt("last_scraped_at", runStartedAt);
-      if (error) console.log(`⚠️  Erreur suppression ${src}:`, error.message);
+    // Supprimer les annonces AutoUncle disparues — seulement si le scraping a fonctionné
+    if (totalUpserted > 0) {
+      console.log("🗑️  Suppression des annonces AutoUncle disparues...");
+      const sources = Object.values(SOURCE_MAP).concat(["AutoUncle"]);
+      for (const src of sources) {
+        const { error } = await supabase
+          .from("annonces")
+          .delete()
+          .eq("source", src)
+          .like("source_id", "au_%")
+          .lt("last_scraped_at", runStartedAt);
+        if (error) console.log(`⚠️  Erreur suppression ${src}:`, error.message);
+      }
+      console.log("✅ Nettoyage terminé");
+    } else {
+      console.log("⚠️  Aucune annonce récupérée — suppression annulée pour éviter de vider la base.");
     }
-    console.log("✅ Nettoyage terminé");
 
     console.log(`\n🎉 Terminé ! ${totalUpserted} annonces AutoUncle dans la base.`);
 

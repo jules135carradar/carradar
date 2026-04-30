@@ -125,15 +125,19 @@ async function scraper() {
       }
     }
 
-    // Supprimer les annonces qui n'existent plus sur Autosphere
-    console.log("🗑️  Suppression des annonces disparues d'Autosphere...");
-    const { error: deleteError, count } = await supabase
-      .from("annonces")
-      .delete({ count: "exact" })
-      .eq("source", "Autosphere")
-      .lt("last_scraped_at", runStartedAt);
-    if (deleteError) console.log("⚠️  Erreur suppression:", deleteError.message);
-    else console.log(`✅ ${count ?? "?"} annonces supprimées (vendues ou retirées)`);
+    // Supprimer les annonces disparues — seulement si le scraping a fonctionné
+    if (totalUpserted > 0) {
+      console.log("🗑️  Suppression des annonces disparues d'Autosphere...");
+      const { error: deleteError, count } = await supabase
+        .from("annonces")
+        .delete({ count: "exact" })
+        .eq("source", "Autosphere")
+        .lt("last_scraped_at", runStartedAt);
+      if (deleteError) console.log("⚠️  Erreur suppression:", deleteError.message);
+      else console.log(`✅ ${count ?? "?"} annonces supprimées (vendues ou retirées)`);
+    } else {
+      console.log("⚠️  Aucune annonce récupérée — suppression annulée pour éviter de vider la base.");
+    }
 
     console.log(`\n🎉 Terminé ! ${totalUpserted} annonces Autosphere dans la base.`);
 
