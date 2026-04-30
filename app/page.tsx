@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
+import SourceFilter from "@/components/SourceFilter";
 
 const sourceCouleur: Record<string, string> = {
   LeBonCoin:    "bg-orange-500/15 text-orange-300 ring-1 ring-orange-500/30",
@@ -169,30 +170,7 @@ export default async function Home({
             ))}
 
             {/* Multi-sélection sources */}
-            <div className="flex flex-wrap gap-1.5">
-              {SOURCES.map((src) => {
-                const active = selectedSources.includes(src);
-                return (
-                  <label
-                    key={src}
-                    className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-medium border transition-all select-none ${
-                      active
-                        ? "bg-blue-600 border-blue-500 text-white"
-                        : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      name="source"
-                      value={src}
-                      defaultChecked={active}
-                      className="hidden"
-                    />
-                    {src}
-                  </label>
-                );
-              })}
-            </div>
+            <SourceFilter initialSelected={selectedSources} />
 
             {hasFilters && (
               <a href="/" className="text-xs text-zinc-500 hover:text-red-400 transition-colors px-2">
