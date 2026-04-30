@@ -134,7 +134,7 @@ export default async function Home({
 
             {/* Budget */}
             <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm">
-              <span className="text-zinc-500 text-xs whitespace-nowrap">Budget max</span>
+              <span className="text-zinc-500 text-xs whitespace-nowrap">💶 Budget max</span>
               <input
                 type="number"
                 name="prixMax"
@@ -149,7 +149,7 @@ export default async function Home({
 
             {/* Année */}
             <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm">
-              <span className="text-zinc-500 text-xs">Année</span>
+              <span className="text-zinc-500 text-xs">📅 Année</span>
               <input type="number" name="anneeMin" defaultValue={(filters as any).anneeMin ?? ""} placeholder="min" className="w-14 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-center" />
               <span className="text-zinc-600">—</span>
               <input type="number" name="anneeMax" defaultValue={(filters as any).anneeMax ?? ""} placeholder="max" className="w-14 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-center" />
@@ -157,7 +157,7 @@ export default async function Home({
 
             {/* KM */}
             <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm">
-              <span className="text-zinc-500 text-xs">KM</span>
+              <span className="text-zinc-500 text-xs">🛣 KM</span>
               <input type="number" name="kmMin" defaultValue={(filters as any).kmMin ?? ""} placeholder="min" className="w-16 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-center" />
               <span className="text-zinc-600">—</span>
               <input type="number" name="kmMax" defaultValue={(filters as any).kmMax ?? ""} placeholder="max" className="w-16 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-center" />
@@ -172,12 +172,12 @@ export default async function Home({
               defaultValue={filters.carburant ?? ""}
               className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
-              <option value="">Carburant</option>
-              <option value="Essence">Essence</option>
-              <option value="Diesel">Diesel</option>
-              <option value="Hybride">Hybride</option>
-              <option value="Électrique">Électrique</option>
-              <option value="Gpl">GPL</option>
+              <option value="">⛽ Carburant</option>
+              <option value="Essence">⛽ Essence</option>
+              <option value="Diesel">🛢 Diesel</option>
+              <option value="Hybride">🔋 Hybride</option>
+              <option value="Électrique">⚡ Électrique</option>
+              <option value="Gpl">🟢 GPL</option>
             </select>
 
             {/* Boîte */}
@@ -186,9 +186,9 @@ export default async function Home({
               defaultValue={filters.boite ?? ""}
               className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
-              <option value="">Boîte</option>
-              <option value="Manuelle">Manuelle</option>
-              <option value="Automatique">Automatique</option>
+              <option value="">⚙️ Boîte</option>
+              <option value="Manuelle">🕹 Manuelle</option>
+              <option value="Automatique">🤖 Automatique</option>
             </select>
 
             {/* Sources */}
