@@ -10,31 +10,46 @@ const supabase = createClient(
 const NOMBRE_DE_PAGES = 100;
 
 function parseH3(h3) {
-  // Format: "Peugeot 2008 1.2 PureTech 100 • Active Essence • Manuelle _2024_ • 29 733 km • Occasion"
+  // Format: "Peugeot 2008 1.2 PureTech 100 BVM6 • Active Essence • Manuelle _2024_ • 29 733 km • Occasion"
   const parts = h3.split("•").map((s) => s.trim());
-
   const titre = parts[0]?.trim() || null;
 
-  const fuelPart = parts[1] || "";
+  // Carburant: cherche dans tout le h3
   let carburant = null;
-  if (/électrique|electric/i.test(fuelPart)) carburant = "Électrique";
-  else if (/hybride/i.test(fuelPart)) carburant = "Hybride";
-  else if (/diesel/i.test(fuelPart)) carburant = "Diesel";
-  else if (/essence/i.test(fuelPart)) carburant = "Essence";
-  else if (/gpl/i.test(fuelPart)) carburant = "GPL";
+  if (/électrique|electric/i.test(h3)) carburant = "Électrique";
+  else if (/hybride/i.test(h3)) carburant = "Hybride";
+  else if (/diesel/i.test(h3)) carburant = "Diesel";
+  else if (/essence/i.test(h3)) carburant = "Essence";
+  else if (/gpl/i.test(h3)) carburant = "GPL";
 
-  const transmPart = parts[2] || "";
+  // Boite: cherche dans tout le h3
   let boite = null;
-  if (/automatique/i.test(transmPart)) boite = "Automatique";
-  else if (/manuelle/i.test(transmPart)) boite = "Manuelle";
-  const anneeMatch = transmPart.match(/(\d{4})/);
+  if (/automatique/i.test(h3)) boite = "Automatique";
+  else if (/manuelle/i.test(h3)) boite = "Manuelle";
+
+  // Année: premier nombre à 4 chiffres entre 2000 et 2030
+  const anneeMatch = h3.match(/\b(20[0-2]\d)\b/);
   const annee = anneeMatch ? parseInt(anneeMatch[1]) : null;
 
-  const kmPart = parts[3] || "";
-  const kmMatch = kmPart.match(/(\d[\d\s]*)\s*km/i);
+  // KM: nombre suivi de "km" (espaces inclus entre chiffres)
+  const kmMatch = h3.match(/(\d[\d\s]{0,6})\s*km/i);
   const km = kmMatch ? parseInt(kmMatch[1].replace(/\s/g, "")) : null;
 
-  return { titre, carburant, boite, annee, km };
+  // Puissance: nombre (50–700) suivi d'un code boite (BVM/EAT/DCT/EDC/CVT) dans le titre
+  let puissance = null;
+  const pvGear = titre?.match(/\b(\d{2,3})\s+(?:BVM|EAT|DCT|EDC|DSG|CVT|AMT|e-CVT)\d*/i);
+  if (pvGear) {
+    puissance = pvGear[1] + " ch";
+  } else {
+    // Sinon : dernier nombre entre 50 et 700 dans le titre, pas suivi de "kWh" ou "kW"
+    const nums = [...(titre || "").matchAll(/\b(\d{2,3})\b(?!\s*k[Ww])/g)];
+    for (const m of [...nums].reverse()) {
+      const n = parseInt(m[1]);
+      if (n >= 50 && n <= 700) { puissance = n + " ch"; break; }
+    }
+  }
+
+  return { titre, carburant, boite, annee, km, puissance };
 }
 
 async function extraireAnnonces(page) {
@@ -122,7 +137,7 @@ async function scraper() {
               lien: card.lien,
               carburant: parsed.carburant,
               boite: parsed.boite,
-              puissance: null,
+              puissance: parsed.puissance,
               last_scraped_at: runStartedAt,
             },
             { onConflict: "source_id" }
