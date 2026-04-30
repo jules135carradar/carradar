@@ -1,8 +1,10 @@
 import { supabase } from "@/lib/supabase";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ImageGallery from "./ImageGallery";
 import Header from "@/components/Header";
+import LikeButton from "@/components/LikeButton";
 
 const sourceCouleur: Record<string, string> = {
   LeBonCoin:    "bg-orange-500/15 text-orange-300 ring-1 ring-orange-500/30",
@@ -48,6 +50,20 @@ export default async function AnnonceDetail({ params }: { params: Promise<{ id: 
       : null;
 
   const diff = prixMoyen !== null && annonce.prix !== null ? annonce.prix - prixMoyen : null;
+
+  const supabaseAuth = await createSupabaseServerClient();
+  const { data: { user } } = await supabaseAuth.auth.getUser();
+
+  let isLiked = false;
+  if (user) {
+    const { data } = await supabaseAuth
+      .from("likes")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("annonce_id", annonce.id)
+      .single();
+    isLiked = !!data;
+  }
 
   const photos: string[] =
     Array.isArray(annonce.images) && annonce.images.length > 0
@@ -156,6 +172,13 @@ export default async function AnnonceDetail({ params }: { params: Promise<{ id: 
                 </p>
               </div>
             )}
+
+            {/* Like */}
+            <LikeButton
+              annonceId={annonce.id}
+              initialLiked={isLiked}
+              userId={user?.id ?? null}
+            />
 
             {/* Bouton source */}
             <a
