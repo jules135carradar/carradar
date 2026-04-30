@@ -4,13 +4,15 @@ const sourceCouleur: Record<string, string> = {
   LeBonCoin: "bg-orange-100 text-orange-700",
   AutoScout24: "bg-blue-100 text-blue-700",
   "La Centrale": "bg-green-100 text-green-700",
+  Autosphere: "bg-purple-100 text-purple-700",
 };
 
 export default async function Home() {
   const { data: annonces, error } = await supabase
     .from("annonces")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(0, 4999);
 
   if (error) {
     console.error("Erreur Supabase:", error.message);
