@@ -109,23 +109,17 @@ export default async function Home({
       )}
 
       {/* Barre de recherche */}
-      <section className="border-b border-zinc-800 bg-zinc-950 px-4 py-5">
-        <form method="GET" action="/" className="max-w-6xl mx-auto">
-          {/* Ligne principale */}
-          <div className="flex flex-col sm:flex-row gap-2 mb-3">
+      <section className="border-b border-zinc-800 bg-zinc-950 px-4 py-4">
+        <form method="GET" action="/" className="max-w-6xl mx-auto space-y-3">
+
+          {/* Ligne 1 : recherche principale */}
+          <div className="flex gap-2">
             <input
               type="text"
               name="q"
               defaultValue={filters.q ?? ""}
               placeholder="Marque, modèle… ex: Peugeot 308"
               className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <input
-              type="number"
-              name="prixMax"
-              defaultValue={filters.prixMax ?? ""}
-              placeholder="Budget max (€)"
-              className="w-full sm:w-40 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             />
             <button
               type="submit"
@@ -135,45 +129,73 @@ export default async function Home({
             </button>
           </div>
 
-          {/* Filtres */}
+          {/* Ligne 2 : filtres groupés */}
           <div className="flex flex-wrap gap-2 items-center">
-            {[
-              { name: "anneeMin", placeholder: "Année min", w: "w-24" },
-              { name: "anneeMax", placeholder: "Année max", w: "w-24" },
-              { name: "kmMin",    placeholder: "KM min",    w: "w-28" },
-              { name: "kmMax",    placeholder: "KM max",    w: "w-28" },
-            ].map(({ name, placeholder, w }) => (
+
+            {/* Budget */}
+            <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm">
+              <span className="text-zinc-500 text-xs whitespace-nowrap">Budget max</span>
               <input
-                key={name}
                 type="number"
-                name={name}
-                defaultValue={(filters as any)[name] ?? ""}
-                placeholder={placeholder}
-                className={`${w} bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500`}
+                name="prixMax"
+                defaultValue={filters.prixMax ?? ""}
+                placeholder="€"
+                className="w-20 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-right"
               />
-            ))}
+            </div>
 
-            {[
-              { name: "carburant", options: [["", "Carburant"], ["Essence","Essence"], ["Diesel","Diesel"], ["Hybride","Hybride"], ["Électrique","Électrique"], ["Gpl","GPL"]] },
-              { name: "boite",     options: [["", "Boîte"], ["Manuelle","Manuelle"], ["Automatique","Automatique"]] },
-            ].map(({ name, options }) => (
-              <select
-                key={name}
-                name={name}
-                defaultValue={(filters as any)[name] ?? ""}
-                className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {options.map(([val, label]) => (
-                  <option key={val} value={val}>{label}</option>
-                ))}
-              </select>
-            ))}
+            {/* Séparateur */}
+            <div className="w-px h-6 bg-zinc-800" />
 
-            {/* Multi-sélection sources */}
+            {/* Année */}
+            <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm">
+              <span className="text-zinc-500 text-xs">Année</span>
+              <input type="number" name="anneeMin" defaultValue={(filters as any).anneeMin ?? ""} placeholder="min" className="w-14 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-center" />
+              <span className="text-zinc-600">—</span>
+              <input type="number" name="anneeMax" defaultValue={(filters as any).anneeMax ?? ""} placeholder="max" className="w-14 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-center" />
+            </div>
+
+            {/* KM */}
+            <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm">
+              <span className="text-zinc-500 text-xs">KM</span>
+              <input type="number" name="kmMin" defaultValue={(filters as any).kmMin ?? ""} placeholder="min" className="w-16 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-center" />
+              <span className="text-zinc-600">—</span>
+              <input type="number" name="kmMax" defaultValue={(filters as any).kmMax ?? ""} placeholder="max" className="w-16 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-center" />
+            </div>
+
+            {/* Séparateur */}
+            <div className="w-px h-6 bg-zinc-800" />
+
+            {/* Carburant */}
+            <select
+              name="carburant"
+              defaultValue={filters.carburant ?? ""}
+              className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">Carburant</option>
+              <option value="Essence">Essence</option>
+              <option value="Diesel">Diesel</option>
+              <option value="Hybride">Hybride</option>
+              <option value="Électrique">Électrique</option>
+              <option value="Gpl">GPL</option>
+            </select>
+
+            {/* Boîte */}
+            <select
+              name="boite"
+              defaultValue={filters.boite ?? ""}
+              className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="">Boîte</option>
+              <option value="Manuelle">Manuelle</option>
+              <option value="Automatique">Automatique</option>
+            </select>
+
+            {/* Sources */}
             <SourceFilter initialSelected={selectedSources} />
 
             {hasFilters && (
-              <a href="/" className="text-xs text-zinc-500 hover:text-red-400 transition-colors px-2">
+              <a href="/" className="text-xs text-zinc-600 hover:text-red-400 transition-colors ml-1">
                 ✕ Effacer
               </a>
             )}
