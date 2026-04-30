@@ -68,51 +68,40 @@ export default async function Home({
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="bg-gradient-to-b from-zinc-900 to-zinc-950 pt-12 pb-10 px-4">
-        <div className="max-w-3xl mx-auto text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-3 tracking-tight">
-            Toutes les annonces voitures,<br />
-            <span className="text-blue-400">au même endroit.</span>
-          </h1>
-          <p className="text-zinc-400 text-base">
-            AutoScout24, Autosphere, Aramisauto — agrégés et mis à jour chaque nuit.
-          </p>
-        </div>
-
-        {/* Formulaire */}
-        <form method="GET" action="/" className="max-w-5xl mx-auto bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-          {/* Ligne 1 */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-3">
+      {/* Barre de recherche */}
+      <section className="border-b border-zinc-800 bg-zinc-950 px-4 py-5">
+        <form method="GET" action="/" className="max-w-6xl mx-auto">
+          {/* Ligne principale */}
+          <div className="flex flex-col sm:flex-row gap-2 mb-3">
             <input
               type="text"
               name="q"
               defaultValue={filters.q ?? ""}
               placeholder="Marque, modèle… ex: Peugeot 308"
-              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             />
             <input
               type="number"
               name="prixMax"
               defaultValue={filters.prixMax ?? ""}
               placeholder="Budget max (€)"
-              className="w-full sm:w-44 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full sm:w-40 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             />
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+              className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
             >
               Rechercher
             </button>
           </div>
 
-          {/* Ligne 2 : filtres avancés */}
+          {/* Filtres */}
           <div className="flex flex-wrap gap-2 items-center">
             {[
-              { name: "anneeMin", placeholder: "Année min", w: "w-28" },
-              { name: "anneeMax", placeholder: "Année max", w: "w-28" },
-              { name: "kmMin",    placeholder: "KM min",    w: "w-32" },
-              { name: "kmMax",    placeholder: "KM max",    w: "w-32" },
+              { name: "anneeMin", placeholder: "Année min", w: "w-24" },
+              { name: "anneeMax", placeholder: "Année max", w: "w-24" },
+              { name: "kmMin",    placeholder: "KM min",    w: "w-28" },
+              { name: "kmMax",    placeholder: "KM max",    w: "w-28" },
             ].map(({ name, placeholder, w }) => (
               <input
                 key={name}
@@ -120,49 +109,29 @@ export default async function Home({
                 name={name}
                 defaultValue={(filters as any)[name] ?? ""}
                 placeholder={placeholder}
-                className={`${w} bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                className={`${w} bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500`}
               />
             ))}
 
-            <select
-              name="carburant"
-              defaultValue={filters.carburant ?? ""}
-              className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">⛽ Carburant</option>
-              <option value="Essence">Essence</option>
-              <option value="Diesel">Diesel</option>
-              <option value="Hybride">Hybride</option>
-              <option value="Électrique">Électrique</option>
-              <option value="Gpl">GPL</option>
-            </select>
-
-            <select
-              name="boite"
-              defaultValue={filters.boite ?? ""}
-              className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">⚙️ Boîte</option>
-              <option value="Manuelle">Manuelle</option>
-              <option value="Automatique">Automatique</option>
-            </select>
-
-            <select
-              name="source"
-              defaultValue={filters.source ?? ""}
-              className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">🌐 Toutes les sources</option>
-              <option value="AutoScout24">AutoScout24</option>
-              <option value="Autosphere">Autosphere</option>
-              <option value="Aramisauto">Aramisauto</option>
-              <option value="LeBonCoin">LeBonCoin</option>
-              <option value="La Centrale">La Centrale</option>
-              <option value="ParuVendu">ParuVendu</option>
-            </select>
+            {[
+              { name: "carburant", options: [["", "Carburant"], ["Essence","Essence"], ["Diesel","Diesel"], ["Hybride","Hybride"], ["Électrique","Électrique"], ["Gpl","GPL"]] },
+              { name: "boite",     options: [["", "Boîte"], ["Manuelle","Manuelle"], ["Automatique","Automatique"]] },
+              { name: "source",    options: [["", "Source"], ["AutoScout24","AutoScout24"], ["Autosphere","Autosphere"], ["Aramisauto","Aramisauto"], ["LeBonCoin","LeBonCoin"], ["La Centrale","La Centrale"], ["ParuVendu","ParuVendu"]] },
+            ].map(({ name, options }) => (
+              <select
+                key={name}
+                name={name}
+                defaultValue={(filters as any)[name] ?? ""}
+                className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {options.map(([val, label]) => (
+                  <option key={val} value={val}>{label}</option>
+                ))}
+              </select>
+            ))}
 
             {hasFilters && (
-              <a href="/" className="text-sm text-zinc-500 hover:text-red-400 transition-colors ml-1">
+              <a href="/" className="text-xs text-zinc-500 hover:text-red-400 transition-colors px-2">
                 ✕ Effacer
               </a>
             )}
@@ -191,7 +160,7 @@ export default async function Home({
                 className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden hover:border-zinc-600 hover:shadow-lg hover:shadow-black/40 transition-all group"
               >
                 {/* Image */}
-                <div className="relative aspect-[16/10] bg-zinc-800 overflow-hidden">
+                <div className="aspect-[16/10] bg-zinc-800 overflow-hidden">
                   {annonce.image ? (
                     <img
                       src={annonce.image}
@@ -201,14 +170,16 @@ export default async function Home({
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-zinc-600 text-4xl">🚗</div>
                   )}
-                  <span className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded-full ${sourceCouleur[annonce.source] ?? "bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-500/30"}`}>
-                    {annonce.source}
-                  </span>
                 </div>
 
                 {/* Infos */}
                 <div className="p-4">
-                  <h2 className="font-semibold text-zinc-100 mb-1 truncate text-sm">{annonce.titre}</h2>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <h2 className="font-semibold text-zinc-100 truncate text-sm">{annonce.titre}</h2>
+                    <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-md ${sourceCouleur[annonce.source] ?? "bg-zinc-500/15 text-zinc-300 ring-1 ring-zinc-500/30"}`}>
+                      {annonce.source}
+                    </span>
+                  </div>
                   <p className="text-2xl font-bold text-blue-400 mb-3">
                     {annonce.prix ? annonce.prix.toLocaleString("fr-FR") + " €" : "Prix non renseigné"}
                   </p>
