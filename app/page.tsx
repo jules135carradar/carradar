@@ -68,6 +68,49 @@ export default async function Home({
         </div>
       </header>
 
+      {/* Hero — affiché seulement sans filtres actifs */}
+      {!hasFilters && (
+        <section className="relative px-4 pt-20 pb-16 text-center overflow-hidden">
+          {/* Glow décoratif */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-[500px] h-[300px] bg-blue-600/10 rounded-full blur-3xl" />
+          </div>
+
+          <div className="relative max-w-2xl mx-auto">
+            {/* Logo grand */}
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <RadarLogo size={48} />
+              <span className="text-5xl font-bold tracking-tight text-white">
+                Car<span className="text-blue-400">Radar</span>
+              </span>
+            </div>
+
+            <p className="text-xl text-zinc-300 mb-2 font-medium">
+              Toutes les annonces voitures au même endroit.
+            </p>
+            <p className="text-zinc-500 text-sm mb-10">
+              AutoScout24, Autosphere, Aramisauto — agrégés et mis à jour chaque nuit automatiquement.
+            </p>
+
+            {/* Stats */}
+            <div className="flex items-center justify-center gap-6 text-sm text-zinc-400 mb-10">
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
+                {liste.length.toLocaleString("fr-FR")}+ annonces
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block" />
+                3 sources
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
+                Mis à jour chaque nuit
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Barre de recherche */}
       <section className="border-b border-zinc-800 bg-zinc-950 px-4 py-5">
         <form method="GET" action="/" className="max-w-6xl mx-auto">
