@@ -117,9 +117,13 @@ async function scraper() {
 
         const listings = extraireAnnonces(rawCards);
 
+        // Ignorer les sources qu'on scrape déjà directement
+        const SOURCES_DIRECTES = ["AutoScout24", "Autosphere"];
+
         let upserted = 0;
         for (const item of listings) {
           if (!item.source_id || !item.titre || item.titre === "Inconnu") continue;
+          if (SOURCES_DIRECTES.includes(item.source)) continue;
 
           const { error } = await supabase.from("annonces").upsert(
             {
