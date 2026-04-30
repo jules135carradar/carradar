@@ -18,8 +18,10 @@ export default async function Home({
 
   if (filters.q) query = query.ilike("titre", `%${filters.q}%`);
   if (filters.prixMax) query = query.lte("prix", parseInt(filters.prixMax));
+  if (filters.kmMin) query = query.gte("km", parseInt(filters.kmMin));
   if (filters.kmMax) query = query.lte("km", parseInt(filters.kmMax));
   if (filters.anneeMin) query = query.gte("annee", parseInt(filters.anneeMin));
+  if (filters.anneeMax) query = query.lte("annee", parseInt(filters.anneeMax));
   if (filters.carburant) query = query.ilike("carburant", `%${filters.carburant}%`);
   if (filters.boite === "Automatique") query = query.ilike("boite", "%automatique%");
   else if (filters.boite) query = query.ilike("boite", `%${filters.boite}%`);
@@ -94,6 +96,20 @@ export default async function Home({
                 defaultValue={filters.anneeMin ?? ""}
                 placeholder="Année min"
                 className="w-32 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="number"
+                name="anneeMax"
+                defaultValue={filters.anneeMax ?? ""}
+                placeholder="Année max"
+                className="w-32 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="number"
+                name="kmMin"
+                defaultValue={filters.kmMin ?? ""}
+                placeholder="KM min"
+                className="w-36 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
                 type="number"
