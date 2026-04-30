@@ -50,6 +50,7 @@ export default async function AnnonceDetail({ params }: { params: Promise<{ id: 
     { icon: "⚙️", label: "Boîte de vitesses", value: annonce.boite },
     { icon: "⚡", label: "Puissance", value: annonce.puissance },
     { icon: "📍", label: "Lieu", value: annonce.lieu },
+    { icon: "🏷️", label: "Version", value: annonce.description },
   ];
 
   return (
@@ -141,14 +142,14 @@ export default async function AnnonceDetail({ params }: { params: Promise<{ id: 
               </div>
             )}
 
-            {/* Bouton AutoScout24 */}
+            {/* Bouton vers la source */}
             <a
               href={annonce.lien}
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full bg-blue-600 text-white text-center px-6 py-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
             >
-              Voir l'annonce sur AutoScout24 →
+              Voir l'annonce sur {annonce.source} →
             </a>
             <p className="text-xs text-gray-400 text-center">S'ouvre dans un nouvel onglet</p>
           </div>
