@@ -1,12 +1,12 @@
-name: Scraper AutoScout24
+name: Scrapers CarRadar
 
 on:
   schedule:
-    - cron: '0 3 * * *'  # Chaque nuit à 3h du matin (heure UTC = 4h en France)
+    - cron: '0 3 * * *'  # Chaque nuit à 3h du matin (UTC = 4h en France)
   workflow_dispatch:      # Permet aussi de lancer manuellement depuis GitHub
 
 jobs:
-  scraper:
+  scrapers:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,8 +25,14 @@ jobs:
       - name: Installer Chromium pour Playwright
         run: npx playwright install chromium --with-deps
 
-      - name: Lancer le scraper
+      - name: Lancer le scraper AutoScout24
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: node scripts/scraper-lbc.js
+
+      - name: Lancer le scraper Autosphere
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: node scripts/scraper-autosphere.js
