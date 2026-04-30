@@ -30,9 +30,15 @@ export default async function Header() {
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <span className="text-sm text-zinc-400 hidden sm:block truncate max-w-[160px]">
-                {user.email}
-              </span>
+              <Link
+                href="/compte"
+                className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
+              >
+                <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white">
+                  {user.email?.[0].toUpperCase()}
+                </div>
+                <span className="hidden sm:block">Mon compte</span>
+              </Link>
               <SignOutButton />
             </>
           ) : (
