@@ -22,34 +22,42 @@ function RadarLogo({ size = 28 }: { size?: number }) {
   );
 }
 
+const SOURCES = ["AutoScout24", "Autosphere", "Aramisauto", "LeBonCoin", "La Centrale", "ParuVendu"];
+
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string>>;
+  searchParams: Promise<Record<string, string | string[]>>;
 }) {
   const filters = await searchParams;
 
+  // Sources sélectionnées (multi-valeurs)
+  const rawSources = filters.source;
+  const selectedSources: string[] = Array.isArray(rawSources)
+    ? rawSources
+    : rawSources ? [rawSources] : [];
+
   let query = supabase.from("annonces").select("*");
 
-  if (filters.q)        query = query.ilike("titre", `%${filters.q}%`);
-  if (filters.prixMax)  query = query.lte("prix", parseInt(filters.prixMax));
-  if (filters.kmMin)    query = query.gte("km", parseInt(filters.kmMin));
-  if (filters.kmMax)    query = query.lte("km", parseInt(filters.kmMax));
-  if (filters.anneeMin) query = query.gte("annee", parseInt(filters.anneeMin));
-  if (filters.anneeMax) query = query.lte("annee", parseInt(filters.anneeMax));
-  if (filters.carburant) query = query.ilike("carburant", `%${filters.carburant}%`);
+  if (filters.q)        query = query.ilike("titre", `%${filters.q as string}%`);
+  if (filters.prixMax)  query = query.lte("prix", parseInt(filters.prixMax as string));
+  if (filters.kmMin)    query = query.gte("km", parseInt(filters.kmMin as string));
+  if (filters.kmMax)    query = query.lte("km", parseInt(filters.kmMax as string));
+  if (filters.anneeMin) query = query.gte("annee", parseInt(filters.anneeMin as string));
+  if (filters.anneeMax) query = query.lte("annee", parseInt(filters.anneeMax as string));
+  if (filters.carburant) query = query.ilike("carburant", `%${filters.carburant as string}%`);
   if (filters.boite === "Automatique") query = query.ilike("boite", "%automatique%");
-  else if (filters.boite) query = query.ilike("boite", `%${filters.boite}%`);
-  if (filters.source)   query = query.eq("source", filters.source);
+  else if (filters.boite) query = query.ilike("boite", `%${filters.boite as string}%`);
+  if (selectedSources.length > 0) query = query.in("source", selectedSources);
 
   const { data: annonces, error } = await query
-    .order("created_at", { ascending: false })
+    .order("prix", { ascending: true, nullsFirst: false })
     .range(0, 4999);
 
   if (error) console.error("Erreur Supabase:", error.message);
 
   const liste = annonces ?? [];
-  const hasFilters = Object.values(filters).some((v) => v);
+  const hasFilters = Object.values(filters).some((v) => v && v.length > 0);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -147,7 +155,6 @@ export default async function Home({
             {[
               { name: "carburant", options: [["", "Carburant"], ["Essence","Essence"], ["Diesel","Diesel"], ["Hybride","Hybride"], ["Électrique","Électrique"], ["Gpl","GPL"]] },
               { name: "boite",     options: [["", "Boîte"], ["Manuelle","Manuelle"], ["Automatique","Automatique"]] },
-              { name: "source",    options: [["", "Source"], ["AutoScout24","AutoScout24"], ["Autosphere","Autosphere"], ["Aramisauto","Aramisauto"], ["LeBonCoin","LeBonCoin"], ["La Centrale","La Centrale"], ["ParuVendu","ParuVendu"]] },
             ].map(({ name, options }) => (
               <select
                 key={name}
@@ -160,6 +167,32 @@ export default async function Home({
                 ))}
               </select>
             ))}
+
+            {/* Multi-sélection sources */}
+            <div className="flex flex-wrap gap-1.5">
+              {SOURCES.map((src) => {
+                const active = selectedSources.includes(src);
+                return (
+                  <label
+                    key={src}
+                    className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-medium border transition-all select-none ${
+                      active
+                        ? "bg-blue-600 border-blue-500 text-white"
+                        : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      name="source"
+                      value={src}
+                      defaultChecked={active}
+                      className="hidden"
+                    />
+                    {src}
+                  </label>
+                );
+              })}
+            </div>
 
             {hasFilters && (
               <a href="/" className="text-xs text-zinc-500 hover:text-red-400 transition-colors px-2">
