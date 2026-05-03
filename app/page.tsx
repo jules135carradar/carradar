@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import SourceFilter from "@/components/SourceFilter";
+import FilterToggle from "@/components/FilterToggle";
 
 const sourceCouleur: Record<string, string> = {
   LeBonCoin:    "bg-orange-500/15 text-orange-300 ring-1 ring-orange-500/30",
@@ -88,7 +89,7 @@ export default async function Home({
 
       {/* Hero — affiché seulement sans filtres actifs */}
       {!hasFilters && (
-        <section className="relative px-4 pt-20 pb-16 text-center overflow-hidden">
+        <section className="relative px-4 pt-10 pb-10 sm:pt-20 sm:pb-16 text-center overflow-hidden">
           {/* Glow décoratif */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-[500px] h-[300px] bg-blue-600/10 rounded-full blur-3xl" />
@@ -96,22 +97,22 @@ export default async function Home({
 
           <div className="relative max-w-2xl mx-auto">
             {/* Logo grand */}
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <RadarLogo size={48} />
-              <span className="text-5xl font-bold tracking-tight text-white">
+            <div className="flex items-center justify-center gap-3 mb-4 sm:mb-6">
+              <RadarLogo size={36} />
+              <span className="text-4xl sm:text-5xl font-bold tracking-tight text-white">
                 Car<span className="text-blue-400">Radar</span>
               </span>
             </div>
 
-            <p className="text-xl text-zinc-300 mb-2 font-medium">
+            <p className="text-lg sm:text-xl text-zinc-300 mb-2 font-medium">
               Toutes les annonces voitures au même endroit.
             </p>
-            <p className="text-zinc-500 text-sm mb-10">
-              AutoScout24, Autosphere, Aramisauto — agrégés et mis à jour chaque nuit automatiquement.
+            <p className="text-zinc-500 text-sm mb-8 sm:mb-10">
+              AutoScout24, Autosphere et plus — agrégés et mis à jour chaque nuit.
             </p>
 
             {/* Stats */}
-            <div className="flex items-center justify-center gap-6 text-sm text-zinc-400 mb-10">
+            <div className="flex items-center justify-center flex-wrap gap-4 sm:gap-6 text-sm text-zinc-400 mb-8 sm:mb-10">
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
                 {liste.length.toLocaleString("fr-FR")}+ annonces
@@ -151,7 +152,7 @@ export default async function Home({
           </div>
 
           {/* Ligne 2 : filtres groupés */}
-          <div className="flex flex-wrap gap-2 items-center">
+          <FilterToggle hasActiveFilters={hasFilters}>
 
             {/* Budget */}
             <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm">
@@ -220,7 +221,7 @@ export default async function Home({
                 ✕ Effacer
               </a>
             )}
-          </div>
+          </FilterToggle>
         </form>
       </section>
 
