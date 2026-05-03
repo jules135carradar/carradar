@@ -84,8 +84,9 @@ async function scraper() {
           const puissanceDetail = (item.vehicleDetails || []).find(d => d.ariaLabel === "Puissance kW (CH)");
           const puissance = puissanceDetail?.data || null;
 
+          const puissance_cv = puissance ? (parseInt(puissance) || null) : null;
           const { error } = await supabase.from("annonces").upsert(
-            { source_id, titre, prix, km, annee, lieu, source: "AutoScout24", image, lien, images, carburant, boite, description, puissance, last_scraped_at: runStartedAt },
+            { source_id, titre, prix, km, annee, lieu, source: "AutoScout24", image, lien, images, carburant, boite, description, puissance, puissance_cv, last_scraped_at: runStartedAt },
             { onConflict: "source_id" }
           );
 

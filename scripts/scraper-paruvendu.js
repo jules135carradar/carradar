@@ -133,6 +133,7 @@ async function scraper() {
               carburant: item.carburant,
               boite: null,
               puissance: null,
+              puissance_cv: null,
               last_scraped_at: runStartedAt,
             },
             { onConflict: "source_id" }

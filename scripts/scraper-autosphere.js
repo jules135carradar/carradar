@@ -88,8 +88,9 @@ async function extraireAnnonces(page) {
 
       const puissanceMatch = h4.match(/(\d+)\s*ch/i);
       const puissance = puissanceMatch ? puissanceMatch[1] + " ch" : null;
+      const puissance_cv = puissanceMatch ? parseInt(puissanceMatch[1]) : null;
 
-      results.push({ titre, prix, annee, km, carburant, boite, lieu, image: image || null, lien, source_id, puissance });
+      results.push({ titre, prix, annee, km, carburant, boite, lieu, image: image || null, lien, source_id, puissance, puissance_cv });
     });
 
     return results.filter((item) => item.source_id && item.titre);
@@ -152,6 +153,7 @@ async function scraper() {
               carburant: item.carburant,
               boite: item.boite,
               puissance: item.puissance || null,
+              puissance_cv: item.puissance_cv || null,
               last_scraped_at: runStartedAt,
             },
             { onConflict: "source_id" }

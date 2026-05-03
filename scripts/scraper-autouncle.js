@@ -40,9 +40,9 @@ function extraireAnnonces(cards) {
     const puissanceLi = lis.find(
       (li) => /\d+\s*ch/i.test(li) && !/\d+\s*km/.test(li)
     );
-    const puissance = puissanceLi
-      ? puissanceLi.match(/(\d+)\s*ch/i)?.[1] + " ch"
-      : null;
+    const puissanceMatch = puissanceLi?.match(/(\d+)\s*ch/i);
+    const puissance = puissanceMatch ? puissanceMatch[1] + " ch" : null;
+    const puissance_cv = puissanceMatch ? parseInt(puissanceMatch[1]) : null;
 
     const prix = card.prix || null;
     const sourceRaw = (card.source || "AutoUncle").toLowerCase();
@@ -54,7 +54,7 @@ function extraireAnnonces(cards) {
     const idMatch = lien?.match(/\/d\/(\d+)-/);
     const source_id = idMatch ? "au_" + idMatch[1] : null;
 
-    return { titre, prix, annee, km, carburant, boite, puissance, source, lieu, img, lien, source_id };
+    return { titre, prix, annee, km, carburant, boite, puissance, puissance_cv, source, lieu, img, lien, source_id };
   });
 }
 
@@ -155,6 +155,7 @@ async function scraper() {
               carburant: item.carburant,
               boite: item.boite,
               puissance: item.puissance,
+              puissance_cv: item.puissance_cv || null,
               last_scraped_at: runStartedAt,
             },
             { onConflict: "source_id" }

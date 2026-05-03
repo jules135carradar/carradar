@@ -50,6 +50,9 @@ export default async function Home({
   if (filters.carburant) query = query.ilike("carburant", `%${filters.carburant as string}%`);
   if (filters.boite === "Automatique") query = query.ilike("boite", "%automatique%");
   else if (filters.boite) query = query.ilike("boite", `%${filters.boite as string}%`);
+  if (filters.puissanceMin) query = query.gte("puissance_cv", parseInt(filters.puissanceMin as string));
+  if (filters.puissanceMax) query = query.lte("puissance_cv", parseInt(filters.puissanceMax as string));
+  if (filters.lieu) query = query.ilike("lieu", `%${filters.lieu as string}%`);
   if (selectedSources.length > 0) query = query.in("source", selectedSources);
 
   const { data: annonces, error } = await query
@@ -183,6 +186,23 @@ export default async function Home({
               <input type="number" name="kmMin" defaultValue={(filters as any).kmMin ?? ""} placeholder="min" className="w-16 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-center" />
               <span className="text-zinc-600">—</span>
               <input type="number" name="kmMax" defaultValue={(filters as any).kmMax ?? ""} placeholder="max" className="w-16 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-center" />
+            </div>
+
+            {/* Puissance */}
+            <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm">
+              <span className="text-zinc-500 text-xs whitespace-nowrap">⚡ Ch</span>
+              <input type="number" name="puissanceMin" defaultValue={(filters as any).puissanceMin ?? ""} placeholder="min" className="w-14 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-center" />
+              <span className="text-zinc-600">—</span>
+              <input type="number" name="puissanceMax" defaultValue={(filters as any).puissanceMax ?? ""} placeholder="max" className="w-14 bg-transparent text-white placeholder-zinc-600 focus:outline-none text-center" />
+            </div>
+
+            {/* Séparateur */}
+            <div className="w-px h-6 bg-zinc-800" />
+
+            {/* Lieu */}
+            <div className="flex items-center gap-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm">
+              <span className="text-zinc-500 text-xs whitespace-nowrap">📍 Ville</span>
+              <input type="text" name="lieu" defaultValue={(filters as any).lieu ?? ""} placeholder="ex: Paris" className="w-24 bg-transparent text-white placeholder-zinc-600 focus:outline-none" />
             </div>
 
             {/* Séparateur */}
