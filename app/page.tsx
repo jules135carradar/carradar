@@ -39,7 +39,25 @@ export default async function Home({
     ? rawSources
     : rawSources ? [rawSources] : [];
 
-  let query = supabase.from("annonces").select("*");
+  const PER_PAGE = 48;
+  const page = Math.max(1, parseInt((filters.page as string) || "1"));
+  const from = (page - 1) * PER_PAGE;
+  const to = from + PER_PAGE - 1;
+
+  // Construit l'URL d'une page en conservant tous les filtres actifs
+  function buildPageUrl(targetPage: number): string {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(filters)) {
+      if (key === "page") continue;
+      if (Array.isArray(value)) value.forEach((v) => params.append(key, v));
+      else if (value) params.set(key, value);
+    }
+    if (targetPage > 1) params.set("page", String(targetPage));
+    const qs = params.toString();
+    return qs ? "/?" + qs : "/";
+  }
+
+  let query = supabase.from("annonces").select("*", { count: "exact" });
 
   if (filters.q)        query = query.ilike("titre", `%${filters.q as string}%`);
   if (filters.prixMax)  query = query.lte("prix", parseInt(filters.prixMax as string));
@@ -55,11 +73,14 @@ export default async function Home({
   if (filters.lieu) query = query.ilike("lieu", `%${filters.lieu as string}%`);
   if (selectedSources.length > 0) query = query.in("source", selectedSources);
 
-  const { data: annonces, error } = await query
+  const { data: annonces, error, count: totalCount } = await query
     .order("prix", { ascending: true, nullsFirst: false })
-    .range(0, 4999);
+    .range(from, to);
 
   if (error) console.error("Erreur Supabase:", error.message);
+
+  const total = totalCount ?? 0;
+  const totalPages = Math.ceil(total / PER_PAGE);
 
   // Mélanger les annonces en alternant les sources
   function interleave(items: any[]): any[] {
@@ -83,7 +104,7 @@ export default async function Home({
   }
 
   const liste = interleave(annonces ?? []);
-  const hasFilters = Object.values(filters).some((v) => v && v.length > 0);
+  const hasFilters = Object.entries(filters).some(([k, v]) => k !== "page" && v && v.length > 0);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -118,7 +139,7 @@ export default async function Home({
             <div className="flex items-center justify-center flex-wrap gap-4 sm:gap-6 text-sm text-zinc-400 mb-8 sm:mb-10">
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
-                {liste.length.toLocaleString("fr-FR")}+ annonces
+                {total.toLocaleString("fr-FR")}+ annonces
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block" />
@@ -247,7 +268,10 @@ export default async function Home({
 
       {/* Grille */}
       <main className="max-w-6xl mx-auto px-4 py-8 pb-16">
-        <p className="text-zinc-500 text-sm mb-5">{liste.length} annonces trouvées</p>
+        <p className="text-zinc-500 text-sm mb-5">
+          {total.toLocaleString("fr-FR")} annonces trouvées
+          {totalPages > 1 && <span className="ml-2 text-zinc-600">— page {page}/{totalPages}</span>}
+        </p>
 
         {liste.length === 0 ? (
           <div className="text-center py-24 text-zinc-600">
@@ -301,6 +325,41 @@ export default async function Home({
                 </div>
               </a>
             ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-10 flex-wrap">
+            {page > 1 && (
+              <a href={buildPageUrl(page - 1)} className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300 hover:border-zinc-500 text-sm transition-colors">
+                ← Précédent
+              </a>
+            )}
+
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const start = Math.max(1, Math.min(totalPages - 4, page - 2));
+              const p = start + i;
+              return (
+                <a
+                  key={p}
+                  href={buildPageUrl(p)}
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm border transition-colors ${
+                    p === page
+                      ? "bg-blue-600 border-blue-500 text-white font-bold"
+                      : "bg-zinc-900 border-zinc-700 text-zinc-400 hover:border-zinc-500"
+                  }`}
+                >
+                  {p}
+                </a>
+              );
+            })}
+
+            {page < totalPages && (
+              <a href={buildPageUrl(page + 1)} className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300 hover:border-zinc-500 text-sm transition-colors">
+                Suivant →
+              </a>
+            )}
           </div>
         )}
       </main>
