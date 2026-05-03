@@ -16,9 +16,11 @@ async function extraireAnnonces(page) {
       document.querySelectorAll('a[href*="/a/voiture-occasion/"]')
     ).filter((a) => {
       const href = a.href || "";
-      // Exclure les liens de navigation, garder seulement les fiches annonces
+      // Exclure les liens de navigation (marque/modèle), garder seulement les fiches annonces
+      // Ex valide: /a/voiture-occasion/toyota/divers/1290072203... (7 segments)
+      // Ex invalide: /a/voiture-occasion/renault/clio (6 segments = page modèle)
       const parts = href.split("/").filter(Boolean);
-      return parts.length >= 6; // protocol, domain, a, voiture-occasion, brand, model, id
+      return parts.length >= 7;
     });
 
     // Dédoublonner par href
@@ -135,9 +137,14 @@ async function scraper() {
             },
             { onConflict: "source_id" }
           );
-          if (!error) upserted++;
+          if (error) {
+            if (p === 1) console.log(`  ⚠️ Erreur Supabase: ${error.message} (source_id: ${item.source_id})`);
+          } else {
+            upserted++;
+          }
         }
 
+        if (p === 1) console.log(`  🔍 Debug page 1: ${listings.length} annonces extraites, ${upserted} insérées`);
         totalUpserted += upserted;
         console.log(`  ✅ Page ${p}/${NOMBRE_DE_PAGES} — ${upserted} annonces (total: ${totalUpserted})`);
 

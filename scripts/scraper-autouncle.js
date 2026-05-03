@@ -81,33 +81,48 @@ async function scraper() {
         await page.waitForTimeout(2500);
 
         const rawCards = await page.evaluate((FUELS) => {
-          return Array.from(document.querySelectorAll("article")).map((card) => {
-            const h3 = card.querySelector("h3")?.textContent.trim() || "";
-            const lis = Array.from(card.querySelectorAll("li")).map((li) => li.textContent.trim());
+          // Le site utilise maintenant des divs avec des liens /fr/d/ au lieu d'articles
+          const seen = new Set();
+          const results = [];
 
-            const prixEl = Array.from(card.querySelectorAll("div")).find((d) =>
+          document.querySelectorAll('a[href*="/fr/d/"]').forEach((a) => {
+            const href = a.getAttribute("href") || "";
+            if (!href.includes("/fr/d/")) return;
+            if (seen.has(href)) return;
+            seen.add(href);
+
+            const lien = href.startsWith("http") ? href : "https://www.autouncle.fr" + href;
+            const card = a.parentElement;
+
+            const h3 = a.querySelector("h3")?.textContent.trim() || "";
+            const lis = Array.from(a.querySelectorAll("li")).map((li) => li.textContent.trim());
+
+            const prixEl = Array.from(card?.querySelectorAll("div") || []).find((d) =>
               /^\d[\d\s]{1,8}€$/.test(d.textContent.trim())
             );
             const prixText = prixEl?.textContent.trim() || "";
             const prix = prixText ? parseInt(prixText.replace(/[^0-9]/g, "")) : null;
 
-            const sourceEl = Array.from(card.querySelectorAll("p")).find((p) =>
-              /autoscout|leboncoin|centrale|autosphere|aramisauto|paruvendu/i.test(p.textContent)
+            // La source est dans un <span>, pas un <p>
+            const sourceEl = Array.from(card?.querySelectorAll("span, p") || []).find((el) =>
+              /autoscout|leboncoin|centrale|autosphere|aramisauto|paruvendu/i.test(el.textContent)
             );
             const source = sourceEl?.textContent.trim() || "AutoUncle";
 
-            const lieuEl = Array.from(card.querySelectorAll("div")).find((d) =>
-              /^\d{5}\s/.test(d.textContent.trim())
+            // Le lieu est dans un <span> avec code postal
+            const lieuEl = Array.from(card?.querySelectorAll("span, div") || []).find((el) =>
+              /^\d{5}\s/.test(el.textContent.trim())
             );
             const lieu = lieuEl
               ? lieuEl.textContent.trim().replace(/^\d{5}\s*/, "").split(",")[0]
               : null;
 
-            const img = card.querySelector("img")?.src || null;
-            const lien = card.querySelector("a")?.href || null;
+            const img = card?.querySelector("img")?.src || null;
 
-            return { h3, lis, prix, source, lieu, img, lien };
+            results.push({ h3, lis, prix, source, lieu, img, lien });
           });
+
+          return results;
         }, FUELS);
 
         if (rawCards.length === 0) {
