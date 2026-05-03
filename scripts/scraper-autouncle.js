@@ -133,7 +133,7 @@ async function scraper() {
         const listings = extraireAnnonces(rawCards);
 
         // Ignorer les sources qu'on scrape déjà directement
-        const SOURCES_DIRECTES = ["AutoScout24", "Autosphere"];
+        const SOURCES_DIRECTES = ["AutoScout24", "Autosphere", "ParuVendu"];
 
         let upserted = 0;
         for (const item of listings) {
@@ -172,10 +172,11 @@ async function scraper() {
     }
 
     // Supprimer les annonces AutoUncle disparues — seulement si le scraping a fonctionné
+    // On ne touche PAS aux sources qui ont leur propre scraper (AutoScout24, Autosphere, ParuVendu)
     if (totalUpserted > 0) {
       console.log("🗑️  Suppression des annonces AutoUncle disparues...");
-      const sources = Object.values(SOURCE_MAP).concat(["AutoUncle"]);
-      for (const src of sources) {
+      const SOURCES_AUTOUNCLE = ["LeBonCoin", "La Centrale", "Aramisauto", "AutoUncle"];
+      for (const src of SOURCES_AUTOUNCLE) {
         const { error } = await supabase
           .from("annonces")
           .delete()
