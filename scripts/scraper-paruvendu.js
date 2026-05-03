@@ -63,9 +63,16 @@ async function extraireAnnonces(page) {
       const idMatch = lien?.match(/\/a\/voiture-occasion\/[^/]+\/[^/]+\/([^/?]+)/);
       const source_id = idMatch ? "pv_" + idMatch[1] : null;
 
-      // Titre : depuis les éléments h2/h3/strong dans la carte
+      // Titre : depuis les éléments h2/h3/strong dans la carte, ou depuis l'URL
       const h = a.querySelector("h2, h3, strong, [class*='title'], [class*='name']");
-      const titre = h?.textContent.trim() || null;
+      const urlTitreMatch = lien?.match(/\/a\/voiture-occasion\/([^/]+)\/([^/]+)\//);
+      const titre = h?.textContent.trim() ||
+        (urlTitreMatch
+          ? [urlTitreMatch[1], urlTitreMatch[2]]
+              .join(" ")
+              .replace(/-/g, " ")
+              .replace(/\b\w/g, (c) => c.toUpperCase())
+          : null);
 
       // Lieu : cherche un code postal ou ville
       const lieuMatch = allText.match(/(?:^|\s)(\d{5})\s+([A-Z][A-Za-zÀ-ÿ\s-]+?)(?:\s|$)/);

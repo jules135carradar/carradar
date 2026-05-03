@@ -11,45 +11,88 @@ const NOMBRE_DE_PAGES = 50;
 
 async function extraireAnnonces(page) {
   return page.evaluate(() => {
-    return Array.from(document.querySelectorAll("article")).map((article) => {
-      const make = article.querySelector("h2")?.textContent.trim() || "";
-      const version = article.querySelector("h3")?.textContent.trim() || "";
-      const titre = (make + " " + version).trim() || "Inconnu";
+    const CARBURANTS = ["Essence", "Diesel", "Hybride", "Électrique", "GPL", "Hydrogène"];
 
-      const prixEl = Array.from(article.querySelectorAll("p")).find(
-        (p) => p.textContent.includes("€") && p.className.includes("font-semibold")
-      );
-      const prixText = prixEl?.textContent.trim() || "";
-      const prix = prixText ? parseInt(prixText.replace(/[^0-9]/g, "")) : null;
+    // Le site utilise maintenant des liens /fiche-mixte/ ou /fiche/ pour chaque carte
+    const seen = new Set();
+    const results = [];
 
-      const spans = Array.from(article.querySelectorAll("span.ml-1"));
-      const details = spans.map((s) => s.textContent.trim());
-      const annee = details[0] ? parseInt(details[0]) : null;
-      const km = details[1] ? parseInt(details[1].replace(/[^0-9]/g, "")) : null;
-      const carburant = details[2] || null;
-      const boite = details[3] || null;
-      const lieu = details[4] || null;
+    document.querySelectorAll('a[href*="/fiche"]').forEach((a) => {
+      const href = a.getAttribute("href") || "";
+      if (!href.includes("/fiche")) return;
+      if (seen.has(href)) return;
+      seen.add(href);
 
-      const imgEl = article.querySelector("img");
-      const imgSrc = imgEl?.src || "";
-      let image = imgSrc;
-      if (imgSrc.includes("_next/image?url=")) {
+      const lien = href.startsWith("http") ? href : "https://www.autosphere.fr" + href;
+
+      // Remonter au conteneur de la carte (cherche h3 dans les parents)
+      let card = a.parentElement;
+      for (let i = 0; i < 6; i++) {
+        if (card?.querySelector("h3")) break;
+        card = card?.parentElement;
+      }
+      if (!card?.querySelector("h3")) return;
+
+      // Image
+      const imgEl = a.querySelector("img") || card.querySelector("img");
+      let image = imgEl?.src || "";
+      if (image.includes("_next/image?url=")) {
         try {
-          image = decodeURIComponent(new URL(imgSrc).searchParams.get("url") || imgSrc);
+          image = decodeURIComponent(new URL(image).searchParams.get("url") || image);
         } catch (e) {}
       }
 
-      const linkEl =
-        article.querySelector("a[href*='/fiche']") ||
-        article.querySelector("a[href*='/fiche-mixte']");
-      const lien = linkEl?.href || null;
+      // Titre
+      const h3 = card.querySelector("h3")?.textContent.trim() || "";
+      const h4 = card.querySelector("h4")?.textContent.trim() || "";
+      const titre = [h3, h4].filter(Boolean).join(" ") || null;
 
-      // Extraire la puissance depuis le nom (ex: "90ch" ou "145 ch")
-      const puissanceMatch = version.match(/(\d+)\s*ch/i);
+      // Prix : chercher un <strong> avec uniquement un montant en €
+      let prix = null;
+      for (const strong of card.querySelectorAll("strong")) {
+        const t = strong.textContent.trim();
+        const m = t.match(/^([\d\s]+)\s*€$/);
+        if (m) {
+          const p = parseInt(m[1].replace(/\s/g, ""));
+          if (p >= 1000 && p <= 300000) { prix = p; break; }
+        }
+      }
+
+      // Spans de détails
+      const spans = Array.from(card.querySelectorAll("span"))
+        .map((s) => s.textContent.trim())
+        .filter(Boolean);
+
+      const anneeSpan = spans.find((s) => /^(19|20)\d{2}$/.test(s));
+      const annee = anneeSpan ? parseInt(anneeSpan) : null;
+
+      const kmSpan = spans.find((s) => /^\d[\d\s]*\s*km$/i.test(s) && !/WLTP/i.test(s));
+      const km = kmSpan ? parseInt(kmSpan.replace(/[^0-9]/g, "")) : null;
+
+      const carburant = spans.find((s) =>
+        CARBURANTS.some((c) => s.toLowerCase().includes(c.toLowerCase()))
+      ) || null;
+
+      const boite = spans.find((s) => /^automatique$|^manuelle$/i.test(s)) || null;
+
+      const lieu = spans.find((s) =>
+        /^[A-ZÀ-Ÿ]/.test(s) &&
+        !/^\d/.test(s) &&
+        !CARBURANTS.some((c) => s.toLowerCase().includes(c.toLowerCase())) &&
+        !/automatique|manuelle/i.test(s)
+      ) || null;
+
+      // ID depuis la fin de l'URL
+      const idMatch = lien.match(/(\d+)[^0-9]*$/);
+      const source_id = idMatch ? "autosphere_" + idMatch[1] : null;
+
+      const puissanceMatch = h4.match(/(\d+)\s*ch/i);
       const puissance = puissanceMatch ? puissanceMatch[1] + " ch" : null;
 
-      return { titre, prix, annee, km, carburant, boite, lieu, image, lien, puissance };
+      results.push({ titre, prix, annee, km, carburant, boite, lieu, image: image || null, lien, source_id, puissance });
     });
+
+    return results.filter((item) => item.source_id && item.titre);
   });
 }
 
