@@ -28,13 +28,8 @@ async function extraireAnnonces(page) {
 
     document.querySelectorAll('a[href]').forEach((a) => {
       const href = a.getAttribute("href") || "";
-      // Accepter les liens vers les fiches voiture (plusieurs formats possibles)
-      const estFicheVoiture =
-        href.includes("/fiche") ||
-        href.includes("/vehicules/") ||
-        href.includes("/occasion/") ||
-        /\/[a-z-]+-\d{5,}/.test(href);
-      if (!estFicheVoiture) return;
+      // Liens vers les fiches voiture Autosphere
+      if (!href.includes("/vehicules/occasion/")) return;
       if (seen.has(href)) return;
       seen.add(href);
 
@@ -136,7 +131,14 @@ async function scraper() {
           : `https://www.autosphere.fr/recherche?page=${p}`;
 
         await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
-        await page.waitForTimeout(2000);
+
+        // Attendre que les voitures soient chargées par React
+        try {
+          await page.waitForSelector('a[href*="/vehicules/occasion/"]', { timeout: 15000 });
+        } catch {
+          console.log(`  ⚠️ Page ${p} : voitures non chargées — ignorée.`);
+          continue;
+        }
 
         const { results: listings, debugInfo } = await extraireAnnonces(page);
 
