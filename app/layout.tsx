@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CarRadar — Toutes les annonces voitures",
   description: "Agrégateur d'annonces voitures : AutoScout24, Autosphere, Aramisauto réunis sur un seul site.",
+  other: {
+    "google-adsense-account": "ca-pub-1467718430522993",
+  },
 };
 
 export default function RootLayout({
@@ -28,15 +31,15 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <head>
+      <body className="min-h-full flex flex-col bg-zinc-950">
+        {children}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1467718430522993"
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-      </head>
-      <body className="min-h-full flex flex-col bg-zinc-950">{children}</body>
+      </body>
     </html>
   );
 }
