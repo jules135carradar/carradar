@@ -17,12 +17,14 @@ async function extraireAnnonces(page) {
     const seen = new Set();
     const results = [];
 
-    // Debug : montrer les premiers hrefs pour diagnostiquer
-    const allHrefs = Array.from(document.querySelectorAll("a[href]"))
-      .map(a => a.getAttribute("href"))
-      .filter(h => h && h.length > 10 && !h.startsWith("#"))
-      .slice(0, 10);
-    console.log("DEBUG hrefs:", allHrefs);
+    // Debug : retourner les infos pour les logger côté Node
+    const debugInfo = {
+      totalLinks: document.querySelectorAll("a[href]").length,
+      sampleHrefs: Array.from(document.querySelectorAll("a[href]"))
+        .map(a => a.getAttribute("href"))
+        .filter(h => h && h.length > 10 && !h.startsWith("#") && !h.startsWith("http") === false || h.includes("autosphere"))
+        .slice(0, 8),
+    };
 
     document.querySelectorAll('a[href]').forEach((a) => {
       const href = a.getAttribute("href") || "";
@@ -31,20 +33,20 @@ async function extraireAnnonces(page) {
         href.includes("/fiche") ||
         href.includes("/vehicules/") ||
         href.includes("/occasion/") ||
-        /\/[a-z-]+-\d{5,}/.test(href);  // slug + ID numérique long
+        /\/[a-z-]+-\d{5,}/.test(href);
       if (!estFicheVoiture) return;
       if (seen.has(href)) return;
       seen.add(href);
 
       const lien = href.startsWith("http") ? href : "https://www.autosphere.fr" + href;
 
-      // Remonter au conteneur de la carte (cherche h3 dans les parents)
+      // Remonter au conteneur de la carte (cherche un titre dans les parents)
       let card = a.parentElement;
-      for (let i = 0; i < 6; i++) {
-        if (card?.querySelector("h3")) break;
+      for (let i = 0; i < 8; i++) {
+        if (card?.querySelector("h2, h3, h4, strong")) break;
         card = card?.parentElement;
       }
-      if (!card?.querySelector("h3")) return;
+      if (!card?.querySelector("h2, h3, h4, strong")) return;
 
       // Image
       const imgEl = a.querySelector("img") || card.querySelector("img");
@@ -57,8 +59,9 @@ async function extraireAnnonces(page) {
 
       // Titre
       const h3 = card.querySelector("h3")?.textContent.trim() || "";
+      const h2 = card.querySelector("h2")?.textContent.trim() || "";
       const h4 = card.querySelector("h4")?.textContent.trim() || "";
-      const titre = [h3, h4].filter(Boolean).join(" ") || null;
+      const titre = [h2 || h3, h4].filter(Boolean).join(" ") || null;
 
       // Prix : chercher un <strong> avec uniquement un montant en €
       let prix = null;
@@ -106,7 +109,7 @@ async function extraireAnnonces(page) {
       results.push({ titre, prix, annee, km, carburant, boite, lieu, image: image || null, lien, source_id, puissance, puissance_cv });
     });
 
-    return results.filter((item) => item.source_id && item.titre);
+    return { results: results.filter((item) => item.source_id && item.titre), debugInfo };
   });
 }
 
@@ -135,7 +138,9 @@ async function scraper() {
         await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
         await page.waitForTimeout(2000);
 
-        const listings = await extraireAnnonces(page);
+        const { results: listings, debugInfo } = await extraireAnnonces(page);
+
+        if (p === 1) console.log(`  🔍 Debug page 1: ${debugInfo.totalLinks} liens totaux, exemples:`, debugInfo.sampleHrefs);
 
         if (listings.length === 0) {
           console.log(`  ⚠️  Page ${p} vide — fin du scraping.`);
