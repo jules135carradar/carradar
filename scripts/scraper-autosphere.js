@@ -126,9 +126,7 @@ async function scraper() {
 
     for (let p = 1; p <= NOMBRE_DE_PAGES; p++) {
       try {
-        const url = p === 1
-          ? "https://www.autosphere.fr/recherche"
-          : `https://www.autosphere.fr/recherche?page=${p}`;
+        const url = `https://www.autosphere.fr/vehicules/occasion?page=${p}`;
 
         await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
 
@@ -136,8 +134,12 @@ async function scraper() {
         try {
           await page.waitForSelector('a[href*="/vehicules/occasion/"]', { timeout: 15000 });
         } catch {
-          console.log(`  ⚠️ Page ${p} : voitures non chargées — ignorée.`);
-          continue;
+          const hrefs = await page.evaluate(() =>
+            Array.from(document.querySelectorAll("a[href]"))
+              .map(a => a.getAttribute("href")).filter(h => h && h.length > 5).slice(0, 6)
+          );
+          console.log(`  ⚠️ Page ${p} non chargée. Liens:`, hrefs);
+          break;
         }
 
         const { results: listings, debugInfo } = await extraireAnnonces(page);
