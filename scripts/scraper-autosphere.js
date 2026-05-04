@@ -119,8 +119,8 @@ async function scraper() {
           ? "https://www.autosphere.fr/recherche"
           : `https://www.autosphere.fr/recherche?page=${p}`;
 
-        await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
-        await page.waitForTimeout(1500);
+        await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
+        await page.waitForTimeout(2000);
 
         const listings = await extraireAnnonces(page);
 

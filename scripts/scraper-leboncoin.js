@@ -51,11 +51,10 @@ async function scraper() {
 
         // Attendre que les annonces soient rendues par React
         try {
-          await page.waitForSelector('a[href*="/ad/voitures/"]', { timeout: 12000 });
+          await page.waitForSelector('a[href*="/ad/voitures/"]', { timeout: 6000 });
         } catch {
-          // Essayer aussi l'ancien format d'URL
           try {
-            await page.waitForSelector('[data-qa-id="aditem_container"]', { timeout: 5000 });
+            await page.waitForSelector('[data-qa-id="aditem_container"]', { timeout: 3000 });
           } catch {
             console.log(`  ⚠️ Page ${p} bloquée ou vide — arrêt.`);
             break;
