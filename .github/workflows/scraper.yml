@@ -51,11 +51,8 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: node scripts/scraper-lacentrale.js
 
-      - name: Lancer le scraper LeBonCoin
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        run: node scripts/scraper-leboncoin.js
+      # LeBonCoin désactivé : anti-bot trop fort sans proxies
+      # - name: Lancer le scraper LeBonCoin
 
       - name: Lancer le scraper AutoUncle (Aramisauto...)
         env:

@@ -24,8 +24,8 @@ async function scraper() {
 
   try {
     await page.goto("https://www.lacentrale.fr/listing?page=1", {
-      waitUntil: "domcontentloaded",
-      timeout: 30000,
+      waitUntil: "networkidle",
+      timeout: 45000,
     });
 
     try {
@@ -50,16 +50,23 @@ async function scraper() {
       try {
         if (p > 1) {
           await page.goto(`https://www.lacentrale.fr/listing?page=${p}`, {
-            waitUntil: "domcontentloaded",
-            timeout: 30000,
+            waitUntil: "networkidle",
+            timeout: 45000,
           });
         }
 
         // Attendre que les annonces soient chargées par JavaScript
         try {
-          await page.waitForSelector('a[href*="/auto-occasion-annonce-"]', { timeout: 10000 });
+          await page.waitForSelector('a[href*="/auto-occasion-annonce-"]', { timeout: 15000 });
         } catch {
-          console.log(`  ⚠️ Page ${p} : aucun lien trouvé après attente — fin du scraping.`);
+          // Debug : afficher les premiers liens pour diagnostiquer
+          const hrefs = await page.evaluate(() =>
+            Array.from(document.querySelectorAll("a[href]"))
+              .map(a => a.getAttribute("href"))
+              .filter(h => h && h.length > 5)
+              .slice(0, 8)
+          );
+          console.log(`  ⚠️ Page ${p} : aucun lien annonce trouvé. Liens présents:`, hrefs);
           break;
         }
 
