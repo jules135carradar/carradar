@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import Header from "@/components/Header";
 import SourceFilter from "@/components/SourceFilter";
 import FilterToggle from "@/components/FilterToggle";
+import CardImage from "@/components/CardImage";
 
 const sourceCouleur: Record<string, string> = {
   LeBonCoin:    "bg-orange-500/15 text-orange-300 ring-1 ring-orange-500/30",
@@ -284,22 +286,21 @@ export default async function Home({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {liste.map((annonce: any) => (
-              <a
+              <Link
                 key={annonce.id}
                 href={`/annonces/${annonce.id}`}
                 className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden hover:border-zinc-600 hover:shadow-lg hover:shadow-black/40 transition-all group"
               >
                 {/* Image */}
                 <div className="aspect-[16/10] bg-zinc-800 overflow-hidden">
-                  {annonce.image ? (
-                    <img
-                      src={annonce.image}
-                      alt={annonce.titre}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-600 text-4xl">🚗</div>
-                  )}
+                  <CardImage
+                    images={
+                      Array.isArray(annonce.images) && annonce.images.length > 0
+                        ? annonce.images
+                        : annonce.image ? [annonce.image] : []
+                    }
+                    titre={annonce.titre}
+                  />
                 </div>
 
                 {/* Infos */}
@@ -323,7 +324,7 @@ export default async function Home({
                     <p className="text-xs text-zinc-600 mt-2">📍 {annonce.lieu}</p>
                   )}
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         )}
