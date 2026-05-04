@@ -29,7 +29,7 @@ async function extraireAnnonces(page) {
     document.querySelectorAll('a[href]').forEach((a) => {
       const href = a.getAttribute("href") || "";
       // Liens vers les fiches voiture Autosphere
-      if (!href.includes("/vehicules/occasion/")) return;
+      if (!href.includes("/fiche") && !href.includes("/vehicules/occasion/")) return;
       if (seen.has(href)) return;
       seen.add(href);
 
@@ -113,11 +113,18 @@ async function scraper() {
 
   const runStartedAt = new Date().toISOString();
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    headless: true,
+    args: ["--disable-blink-features=AutomationControlled"],
+  });
   const context = await browser.newContext({
-    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    viewport: { width: 1280, height: 800 },
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    viewport: { width: 1366, height: 768 },
     locale: "fr-FR",
+  });
+  // Masquer les traces de Playwright pour éviter la détection bot
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, "webdriver", { get: () => undefined });
   });
   const page = await context.newPage();
 
@@ -126,21 +133,11 @@ async function scraper() {
 
     for (let p = 1; p <= NOMBRE_DE_PAGES; p++) {
       try {
-        const url = `https://www.autosphere.fr/vehicules/occasion?page=${p}`;
+        const url = p === 1
+          ? "https://www.autosphere.fr/recherche"
+          : `https://www.autosphere.fr/recherche?page=${p}`;
 
-        await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
-
-        // Attendre que les voitures soient chargées par React
-        try {
-          await page.waitForSelector('a[href*="/vehicules/occasion/"]', { timeout: 15000 });
-        } catch {
-          const hrefs = await page.evaluate(() =>
-            Array.from(document.querySelectorAll("a[href]"))
-              .map(a => a.getAttribute("href")).filter(h => h && h.length > 5).slice(0, 6)
-          );
-          console.log(`  ⚠️ Page ${p} non chargée. Liens:`, hrefs);
-          break;
-        }
+        await page.goto(url, { waitUntil: "networkidle", timeout: 45000 });
 
         const { results: listings, debugInfo } = await extraireAnnonces(page);
 
