@@ -131,16 +131,11 @@ async function scraper() {
 
         let upserted = 0;
         for (const item of listings) {
-          if (!item.lien) continue;
-
-          // Extraire l'ID unique depuis l'URL (dernier nombre)
-          const idMatch = item.lien.match(/(\d+)$/);
-          if (!idMatch) continue;
-          const source_id = "autosphere_" + idMatch[1];
+          if (!item.source_id || !item.titre) continue;
 
           const { error } = await supabase.from("annonces").upsert(
             {
-              source_id,
+              source_id: item.source_id,
               titre: item.titre,
               prix: item.prix,
               km: item.km,

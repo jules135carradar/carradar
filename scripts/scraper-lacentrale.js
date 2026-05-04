@@ -32,9 +32,16 @@ async function scraper() {
       await page.waitForSelector('button:has-text("Tout accepter")', { timeout: 8000 });
       await page.click('button:has-text("Tout accepter")');
       console.log("✅ Cookies acceptés");
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(1500);
     } catch {
-      console.log("ℹ️ Pas de popup cookie");
+      try {
+        await page.waitForSelector('button:has-text("Accepter")', { timeout: 5000 });
+        await page.click('button:has-text("Accepter")');
+        console.log("✅ Cookies acceptés (v2)");
+        await page.waitForTimeout(1500);
+      } catch {
+        console.log("ℹ️ Pas de popup cookie");
+      }
     }
 
     let totalUpserted = 0;
@@ -46,7 +53,14 @@ async function scraper() {
             waitUntil: "domcontentloaded",
             timeout: 30000,
           });
-          await page.waitForTimeout(2000);
+        }
+
+        // Attendre que les annonces soient chargées par JavaScript
+        try {
+          await page.waitForSelector('a[href*="/auto-occasion-annonce-"]', { timeout: 10000 });
+        } catch {
+          console.log(`  ⚠️ Page ${p} : aucun lien trouvé après attente — fin du scraping.`);
+          break;
         }
 
         const annonces = await page.evaluate(() => {

@@ -47,7 +47,19 @@ async function scraper() {
             waitUntil: "domcontentloaded",
             timeout: 30000,
           });
-          await page.waitForTimeout(2500);
+        }
+
+        // Attendre que les annonces soient rendues par React
+        try {
+          await page.waitForSelector('a[href*="/ad/voitures/"]', { timeout: 12000 });
+        } catch {
+          // Essayer aussi l'ancien format d'URL
+          try {
+            await page.waitForSelector('[data-qa-id="aditem_container"]', { timeout: 5000 });
+          } catch {
+            console.log(`  ⚠️ Page ${p} bloquée ou vide — arrêt.`);
+            break;
+          }
         }
 
         // Essayer d'abord les données JSON embarquées
