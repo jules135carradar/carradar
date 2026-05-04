@@ -145,7 +145,7 @@ export default async function Home({
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block" />
-                3 sources
+                {SOURCES.length} sources
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
@@ -333,16 +333,16 @@ export default async function Home({
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-10 flex-wrap">
             {page > 1 && (
-              <a href={buildPageUrl(page - 1)} className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300 hover:border-zinc-500 text-sm transition-colors">
+              <Link href={buildPageUrl(page - 1)} className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300 hover:border-zinc-500 text-sm transition-colors">
                 ← Précédent
-              </a>
+              </Link>
             )}
 
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               const start = Math.max(1, Math.min(totalPages - 4, page - 2));
               const p = start + i;
               return (
-                <a
+                <Link
                   key={p}
                   href={buildPageUrl(p)}
                   className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm border transition-colors ${
@@ -352,14 +352,14 @@ export default async function Home({
                   }`}
                 >
                   {p}
-                </a>
+                </Link>
               );
             })}
 
             {page < totalPages && (
-              <a href={buildPageUrl(page + 1)} className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300 hover:border-zinc-500 text-sm transition-colors">
+              <Link href={buildPageUrl(page + 1)} className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300 hover:border-zinc-500 text-sm transition-colors">
                 Suivant →
-              </a>
+              </Link>
             )}
           </div>
         )}
