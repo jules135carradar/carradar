@@ -1,9 +1,9 @@
 name: Scrapers CarRadar
 
 on:
-  schedule:
-    - cron: '0 3 * * *'  # Chaque nuit à 3h du matin (UTC = 4h en France)
-  workflow_dispatch:      # Permet aussi de lancer manuellement depuis GitHub
+  # schedule:
+  #   - cron: '0 3 * * *'  # Désactivé — site en pause
+  workflow_dispatch:      # Lancement manuel uniquement
 
 jobs:
   scrapers:
