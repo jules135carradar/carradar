@@ -17,9 +17,22 @@ async function extraireAnnonces(page) {
     const seen = new Set();
     const results = [];
 
-    document.querySelectorAll('a[href*="/fiche"]').forEach((a) => {
+    // Debug : montrer les premiers hrefs pour diagnostiquer
+    const allHrefs = Array.from(document.querySelectorAll("a[href]"))
+      .map(a => a.getAttribute("href"))
+      .filter(h => h && h.length > 10 && !h.startsWith("#"))
+      .slice(0, 10);
+    console.log("DEBUG hrefs:", allHrefs);
+
+    document.querySelectorAll('a[href]').forEach((a) => {
       const href = a.getAttribute("href") || "";
-      if (!href.includes("/fiche")) return;
+      // Accepter les liens vers les fiches voiture (plusieurs formats possibles)
+      const estFicheVoiture =
+        href.includes("/fiche") ||
+        href.includes("/vehicules/") ||
+        href.includes("/occasion/") ||
+        /\/[a-z-]+-\d{5,}/.test(href);  // slug + ID numérique long
+      if (!estFicheVoiture) return;
       if (seen.has(href)) return;
       seen.add(href);
 
