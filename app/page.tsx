@@ -376,7 +376,12 @@ export default async function Home({
 
       {/* Footer */}
       <footer className="border-t border-zinc-800 py-6 px-4 text-center text-sm text-zinc-600">
-        © 2026 CarRadar — Agrégateur d'annonces voitures
+        © 2026 CarRadar —{" "}
+        <Link href="/a-propos" className="hover:text-zinc-400 transition-colors">À propos</Link>
+        {" · "}
+        <Link href="/contact" className="hover:text-zinc-400 transition-colors">Contact</Link>
+        {" · "}
+        <Link href="/confidentialite" className="hover:text-zinc-400 transition-colors">Confidentialité</Link>
       </footer>
     </div>
   );
